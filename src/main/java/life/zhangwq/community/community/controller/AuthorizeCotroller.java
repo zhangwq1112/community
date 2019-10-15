@@ -2,6 +2,8 @@ package life.zhangwq.community.community.controller;
 
 import life.zhangwq.community.community.dto.AccessTokenDTO;
 import life.zhangwq.community.community.dto.GithubUser;
+import life.zhangwq.community.community.mapper.UserMapper;
+import life.zhangwq.community.community.model.User;
 import life.zhangwq.community.community.provider.GithubProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 /**
  * Created by zhangwq on 2019/10/12.
@@ -19,6 +22,9 @@ import javax.servlet.http.HttpServletRequest;
 public class AuthorizeCotroller {
     @Autowired
     private GithubProvider githubProvider;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Value("${github.client.id}")
     private String clientId;
@@ -38,10 +44,19 @@ public class AuthorizeCotroller {
         accessTokenDTO.setRedirect_uri(redirectUri);
         accessTokenDTO.setState(state);
         String accessToken = githubProvider.getAccessToken(accessTokenDTO);
-        GithubUser user = githubProvider.getUser(accessToken);
-        if (user != null) {
+        GithubUser githubUser = githubProvider.getUser(accessToken);
+        if (githubUser != null ) {
+            // 插入数据库
+            User user = new User();
+            user.setName(githubUser.getName());
+            user.setAccountId(String.valueOf(githubUser.getId()));
+            user.setToken(UUID.randomUUID().toString());
+            user.setGmtCreate(System.currentTimeMillis());
+            user.setGmtModified(System.currentTimeMillis());
+
+            userMapper.insert(user);
             // 登录成功，写 session 和 cookie
-            request.getSession().setAttribute("user", user);
+            request.getSession().setAttribute("user", githubUser);
             return "redirect:/";
         } else {
             // 登录失败，重新登录
