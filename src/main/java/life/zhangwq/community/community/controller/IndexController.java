@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
  * Created by zhangwq on 2019/10/12.
  */
 @Controller
-public class indexCotroller {
+public class IndexController {
     @Autowired
     UserMapper userMapper;
 

@@ -20,7 +20,7 @@ import java.util.UUID;
  * https://github.com/settings/applications/1150835
  */
 @Controller
-public class AuthorizeCotroller {
+public class AuthorizeController {
     @Autowired
     private GithubProvider githubProvider;
 
@@ -46,7 +46,7 @@ public class AuthorizeCotroller {
         accessTokenDTO.setState(state);
         String accessToken = githubProvider.getAccessToken(accessTokenDTO);
         GithubUser githubUser = githubProvider.getUser(accessToken);
-        if (githubUser != null) {
+        if (githubUser != null && githubUser.getId() != null) {
             // 插入数据库
             String token = UUID.randomUUID().toString();
             User user = new User();
@@ -55,6 +55,7 @@ public class AuthorizeCotroller {
             user.setGmtCreate(System.currentTimeMillis());
             user.setGmtModified(System.currentTimeMillis());
             user.setToken(token);
+            user.setAvatarUrl(githubUser.getAvatarUrl());
             userMapper.insert(user);
 
             // response 中添加名为 token 的 Cookie
