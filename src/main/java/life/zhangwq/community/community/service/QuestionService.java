@@ -1,5 +1,6 @@
 package life.zhangwq.community.community.service;
 
+import life.zhangwq.community.community.dto.PaginationDTO;
 import life.zhangwq.community.community.dto.QuestionDTO;
 import life.zhangwq.community.community.mapper.QuestionMapper;
 import life.zhangwq.community.community.mapper.UserMapper;
@@ -24,17 +25,36 @@ public class QuestionService {
     @Autowired
     QuestionMapper questionMapper;
 
-    public List<QuestionDTO> list() {
-        List<Question> list = questionMapper.list();
+    public PaginationDTO list(Integer page, Integer size) {
+        Integer totalCount = questionMapper.count();
+        Integer totalPage;
+        if (totalCount % size == 0) {
+            totalPage = totalCount / size;
+        } else {
+            totalPage = totalCount / size + 1;
+        }
+
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > totalPage) {
+            page = totalPage;
+        }
+
+        Integer offset = size * (page - 1);
+        List<Question> list = questionMapper.list(offset, size);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
+        PaginationDTO paginationDTO = new PaginationDTO();
         for (Question question : list) {
             User user = userMapper.findById(question.getCreator());
             QuestionDTO questionDTO = new QuestionDTO();
-            BeanUtils.copyProperties(question,questionDTO);
+            BeanUtils.copyProperties(question, questionDTO);
             questionDTO.setUser(user);
             questionDTOList.add(questionDTO);
         }
+        paginationDTO.setQuestionDTOS(questionDTOList);
 
-        return questionDTOList;
+        paginationDTO.setPagination(totalPage, page);
+        return paginationDTO;
     }
 }
