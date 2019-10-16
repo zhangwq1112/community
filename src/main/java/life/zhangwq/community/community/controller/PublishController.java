@@ -79,13 +79,13 @@ public class PublishController {
 
         Question question = new Question();
 
-        qestionMapper.create(question);
         question.setTitle(title);
         question.setDescription(description);
         question.setTag(tag);
         question.setCreator(user.getId());
         question.setGmtCreate(System.currentTimeMillis());
         question.setGmtModified(System.currentTimeMillis());
+        qestionMapper.create(question);
 
 /*
 
